@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agricultural Cost Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .model-info {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8e8 100%);
+            padding: 20px;
+            margin: 20px 30px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .model-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .model-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .model-metric {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .model-metric .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .model-metric .label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .architecture-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        
+        .architecture-info ul {
+            margin: 10px 0 0 20px;
+            padding: 0;
+        }
+        
+        .architecture-info li {
+            margin: 5px 0;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-section, .output-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        select:disabled {
+            background-color: #f0f0f0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        
+        .cost-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .price-change {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        
+        .positive {
+            color: #27ae60;
+        }
+        
+        .negative {
+            color: #e74c3c;
+        }
+        
+        .breakdown {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .results-table thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .results-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1em;
+        }
+        
+        .results-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .results-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .results-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .results-table .input-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .results-table .price-value {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        .results-table .percentage {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .results-table .percentage.positive {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .results-table .percentage.negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .summary-row {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8e8 100%);
+            font-weight: bold;
+        }
+        
+        .summary-row td {
+            font-size: 1.1em;
+            padding: 15px;
+        }
+        
+        .total-cost-display {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .total-cost-display .label {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .total-cost-display .amount {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        
+        .multipliers-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 30px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .multipliers-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        
+        .multipliers-table thead {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .multipliers-table th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        .multipliers-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .multipliers-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .multipliers-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .crop-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .toggle-multipliers {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+        
+        .toggle-multipliers:hover {
+            transform: translateY(-2px);
+        }
+        
+        .multipliers-content {
+            display: none;
+        }
+        
+        .multipliers-content.show {
+            display: block;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #c33;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .success {
+            background: #efe;
+            color: #363;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #363;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌱 Hybrid AI Cost Predictor</h1>
+            <p>Advanced TemporalKG Model - Combining GRU Temporal Patterns & Knowledge Graph Embeddings</p>
+        </div>
+        
+        
+        <div class="multipliers-section">
+            <h3 style="margin-bottom: 10px; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
+                📋 Input Multipliers Per Acre by Crop
+            </h3>
+            <p style="color: #6c757d; margin-bottom: 15px; font-size: 0.9em;">
+                These are the standard quantities required per acre for each input type. The model uses these multipliers to calculate total costs from unit prices.
+            </p>
+            <button class="toggle-multipliers" onclick="toggleMultipliers()">Show/Hide Multipliers Table</button>
+            <div class="multipliers-content" id="multipliersContent">
+                <table class="multipliers-table" id="multipliersTable">
+                    <thead>
+                        <tr>
+                            <th>Crop</th>
+                            <th>Seed (kg)</th>
+                            <th>Fertilizer (kg)</th>
+                            <th>Herbicide (L)</th>
+                            <th>Pesticide (L)</th>
+                            <th>Labor (days)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="multipliersBody">
+                        <tr><td colspan="6" style="text-align: center; padding: 20px; color: #6c757d;">Loading multipliers...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2>Input Parameters</h2>
+                <form id="predictionForm">
+                    <div class="form-group">
+                        <label for="region">Region:</label>
+                        <select id="region" required>
+                            <option value="">Select Region</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="district">District:</label>
+                        <select id="district" required>
+                            <option value="">Select District</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="crop">Crop:</label>
+                        <select id="crop" required>
+                            <option value="">Select Crop</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="predictBtn">
+                        Predict Costs
+                    </button>
+                </form>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>AI Model is predicting costs...</p>
+                </div>
+                
+                <div class="error" id="error"></div>
+                <div class="success" id="success">Prediction successful! Check results on the right.</div>
+            </div>
+            
+            <div class="output-section">
+                <h2>Prediction Results</h2>
+                <div id="results">
+                    <p style="text-align: center; color: #6c757d; padding: 40px;">
+                        Enter parameters and click "Predict Costs" to see results
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug logging
+        function debugLog(message) {
+            console.log(`[DEBUG] ${message}`);
+        }
+
+        // Load available options
+        async function loadOptions() {
+            try {
+                debugLog("Loading options...");
+                
+                const regionsRes = await fetch('/regions');
+                
+                debugLog(`Regions response: ${regionsRes.status}`);
+                
+                if (!regionsRes.ok) throw new Error('Regions API failed');
+                
+                const regions = await regionsRes.json();
+                
+                debugLog(`Loaded ${regions.regions?.length} regions`);
+                
+                populateSelect('region', regions.regions || []);
+                
+                // Initially clear districts and crops
+                populateSelect('district', []);
+                populateSelect('crop', []);
+                
+                debugLog("Options loaded successfully");
+                
+            } catch (error) {
+                console.error('Error loading options:', error);
+                showError(`Failed to load options: ${error.message}`);
+            }
+        }
+        
+        // Load districts based on selected region
+        async function loadDistricts(region) {
+            const districtSelect = document.getElementById('district');
+            const cropSelect = document.getElementById('crop');
+            
+            // Clear districts and crops
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            cropSelect.innerHTML = '<option value="">Select Crop</option>';
+            cropSelect.disabled = true;
+            
+            if (!region) {
+                districtSelect.disabled = true;
+                return;
+            }
+            
+            districtSelect.disabled = false;
+            
+            try {
+                const response = await fetch(`/districts?region=${encodeURIComponent(region)}`);
+                if (!response.ok) throw new Error('Failed to load districts');
+                
+                const data = await response.json();
+                debugLog(`Loaded ${data.districts?.length} districts for region ${region}`);
+                
+                populateSelect('district', data.districts || []);
+            } catch (error) {
+                console.error('Error loading districts:', error);
+                showError(`Failed to load districts: ${error.message}`);
+            }
+        }
+        
+        // Load crops based on selected district and region
+        async function loadCrops(region, district) {
+            const cropSelect = document.getElementById('crop');
+            
+            // Clear crops
+            cropSelect.innerHTML = '<option value="">Select Crop</option>';
+            
+            if (!district) {
+                cropSelect.disabled = true;
+                return;
+            }
+            
+            cropSelect.disabled = false;
+            
+            try {
+                let url = `/crops?district=${encodeURIComponent(district)}`;
+                if (region) {
+                    url += `&region=${encodeURIComponent(region)}`;
+                }
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load crops');
+                
+                const data = await response.json();
+                debugLog(`Loaded ${data.crops?.length} crops for district ${district}`);
+                
+                populateSelect('crop', data.crops || []);
+            } catch (error) {
+                console.error('Error loading crops:', error);
+                showError(`Failed to load crops: ${error.message}`);
+            }
+        }
+        
+        function populateSelect(elementId, options) {
+            const select = document.getElementById(elementId);
+            const currentValue = select.value;
+            let placeholder;
+            if (elementId === 'region') {
+                placeholder = 'Select Region';
+            } else if (elementId === 'district') {
+                placeholder = 'Select District';
+            } else {
+                placeholder = 'Select Crop';
+            }
+            select.innerHTML = `<option value="">${placeholder}</option>`;
+            
+            if (options && options.length > 0) {
+                options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option;
+                    optionElement.textContent = option;
+                    select.appendChild(optionElement);
+                });
+                
+                // Restore previous selection if it still exists
+                if (currentValue && options.includes(currentValue)) {
+                    select.value = currentValue;
+                }
+            }
+        }
+        
+        // Add event listeners for cascading dropdowns
+        document.addEventListener('DOMContentLoaded', function() {
+            const regionSelect = document.getElementById('region');
+            const districtSelect = document.getElementById('district');
+            const cropSelect = document.getElementById('crop');
+            
+            // Initially disable districts and crops
+            districtSelect.disabled = true;
+            cropSelect.disabled = true;
+            
+            // Region change handler
+            regionSelect.addEventListener('change', function() {
+                const selectedRegion = this.value;
+                debugLog(`Region changed to: ${selectedRegion}`);
+                loadDistricts(selectedRegion);
+            });
+            
+            // District change handler
+            districtSelect.addEventListener('change', function() {
+                const selectedRegion = regionSelect.value;
+                const selectedDistrict = this.value;
+                debugLog(`District changed to: ${selectedDistrict}`);
+                loadCrops(selectedRegion, selectedDistrict);
+            });
+        });
+        
+        // Handle form submission
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('predictBtn');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+            
+            // Reset messages
+            error.style.display = 'none';
+            success.style.display = 'none';
+            
+            // Show loading
+            btn.disabled = true;
+            loading.style.display = 'block';
+            
+            try {
+                const inputData = {
+                    region: document.getElementById('region').value,
+                    district: document.getElementById('district').value,
+                    crop: document.getElementById('crop').value,
+                    rainfall: 75,  // Default value
+                    soil_fertility: 80  // Default value
+                };
+                
+                debugLog("Sending prediction request:", inputData);
+                
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(inputData)
+                });
+                
+                debugLog(`Response status: ${response.status}`);
+                
+                const result = await response.json();
+                debugLog("Raw API response:", result);
+                
+                if (!response.ok) {
+                    throw new Error(result.error || `API returned ${response.status}`);
+                }
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+                
+                // Success!
+                displayResults(result);
+                success.style.display = 'block';
+                debugLog("Prediction displayed successfully");
+                
+            } catch (error) {
+                console.error('Prediction error:', error);
+                showError(error.message);
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+        
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            
+            debugLog("Displaying results:", result);
+            
+            // Safely access properties with fallbacks
+            const individualPrices = result.individual_prices || {};
+            const futurePredictions = result.future_predictions || [];
+            const calculationBreakdown = result.calculation_breakdown || {};
+            const inputCosts = calculationBreakdown.input_costs || {};
+            
+            const changeClass = (result.price_change || 0) >= 0 ? 'positive' : 'negative';
+            const changeSymbol = (result.price_change || 0) >= 0 ? '+' : '';
+            
+            // Format numbers with commas
+            const formatNumber = (num) => {
+                if (num === undefined || num === null) return '0';
+                return Math.round(num).toLocaleString();
+            };
+            
+            // Calculate percentage contribution of each input to total
+            const totalCost = result.predicted_cost || 0;
+            const calculatePercentage = (value) => {
+                if (totalCost === 0) return 0;
+                return ((value / totalCost) * 100).toFixed(2);
+            };
+            
+            // Prepare table data
+            const tableData = [
+                {
+                    name: 'Seed Price',
+                    value: individualPrices.seed_price || 0,
+                    percentage: calculatePercentage(individualPrices.seed_price || 0)
+                },
+                {
+                    name: 'Fertilizer Price',
+                    value: individualPrices.fertilizer_price || 0,
+                    percentage: calculatePercentage(individualPrices.fertilizer_price || 0)
+                },
+                {
+                    name: 'Herbicide Price',
+                    value: individualPrices.herbicide_price || 0,
+                    percentage: calculatePercentage(individualPrices.herbicide_price || 0)
+                },
+                {
+                    name: 'Pesticide Price',
+                    value: individualPrices.pesticide_price || 0,
+                    percentage: calculatePercentage(individualPrices.pesticide_price || 0)
+                },
+                {
+                    name: 'Labor Cost',
+                    value: individualPrices.labor_cost || 0,
+                    percentage: calculatePercentage(individualPrices.labor_cost || 0)
+                }
+            ];
+            
+            resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <h3 style="margin-bottom: 20px;">📍 ${result.region || 'N/A'} → ${result.district || 'N/A'} → ${result.crop || 'N/A'}</h3>
+                    
+                    <div class="total-cost-display">
+                        <div class="label">Total Input Cost per Acre</div>
+                        <div class="amount">${formatNumber(result.predicted_cost)} UGX</div>
+                        <div style="margin-top: 10px; font-size: 1em; opacity: 0.9;">
+                            ${changeSymbol}${Math.abs(result.price_change || 0).toFixed(2)}% ${(result.price_change || 0) >= 0 ? 'increase' : 'decrease'} from baseline
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin: 25px 0 15px 0; color: #2c3e50;">📊 Individual Input Price Predictions (Per Acre)</h4>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Input Type</th>
+                                <th>Unit Price</th>
+                                <th>Qty/Acre</th>
+                                <th>Total Cost (UGX)</th>
+                                <th>% of Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${(() => {
+                                const multipliers = individualPrices.multipliers || {};
+                                const unitPrices = individualPrices.unit_prices || {};
+                                const inputTypes = [
+                                    { key: 'seed', name: 'Seed', unit: 'UGX/kg', qtyKey: 'seed_kg_per_acre', priceKey: 'seed_price', unitKey: 'seed_price_per_kg' },
+                                    { key: 'fertilizer', name: 'Fertilizer', unit: 'UGX/kg', qtyKey: 'fertilizer_kg_per_acre', priceKey: 'fertilizer_price', unitKey: 'fertilizer_price_per_kg' },
+                                    { key: 'herbicide', name: 'Herbicide', unit: 'UGX/L', qtyKey: 'herbicide_litre_per_acre', priceKey: 'herbicide_price', unitKey: 'herbicide_price_per_litre' },
+                                    { key: 'pesticide', name: 'Pesticide', unit: 'UGX/L', qtyKey: 'pesticide_litre_per_acre', priceKey: 'pesticide_price', unitKey: 'pesticide_price_per_litre' },
+                                    { key: 'labor', name: 'Labor', unit: 'UGX/day', qtyKey: 'labor_days_per_acre', priceKey: 'labor_cost', unitKey: 'labor_cost_per_day' }
+                                ];
+                                
+                                return inputTypes.map(input => {
+                                    const unitPrice = unitPrices[input.unitKey] || 0;
+                                    const quantity = multipliers[input.qtyKey] || 0;
+                                    const totalPrice = individualPrices[input.priceKey] || 0;
+                                    const percentage = calculatePercentage(totalPrice);
+                                    
+                                    // Calculate expected total to verify multiplier is applied
+                                    const calculatedTotal = unitPrice * quantity;
+                                    
+                                    return `
+                                        <tr>
+                                            <td class="input-name">${input.name}</td>
+                                            <td>${formatNumber(unitPrice)}<br><small style="color: #6c757d;">${input.unit}</small></td>
+                                            <td><strong>${quantity.toFixed(1)}</strong><br><small style="color: #6c757d;">${quantity > 0 ? `× ${formatNumber(unitPrice)} = ${formatNumber(calculatedTotal)}` : 'No multiplier'}</small></td>
+                                            <td class="price-value">${formatNumber(totalPrice)}</td>
+                                            <td><span class="percentage positive">${percentage}%</span></td>
+                                        </tr>
+                                    `;
+                                }).join('');
+                            })()}
+                            <tr class="summary-row">
+                                <td colspan="3">🎯 <strong>Total Input Cost per Acre</strong></td>
+                                <td class="price-value" style="color: #667eea; font-size: 1.2em;">${formatNumber(totalCost)}</td>
+                                <td><span class="percentage positive">100.00%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    ${futurePredictions.length > 0 ? `
+                    <div class="breakdown" style="margin-top: 20px;">
+                        <h4>📅 Future Month Predictions with Individual Input Breakdown:</h4>
+                        ${futurePredictions.map(pred => {
+                            const change = parseFloat(pred.price_change || 0);
+                            const changeClass = change >= 0 ? 'positive' : 'negative';
+                            const changeSymbol = change >= 0 ? '+' : '';
+                            const indPrices = pred.individual_prices || {};
+                            const monthTotal = pred.predicted_cost || 0;
+                            
+                            const calculatePercentage = (value) => {
+                                if (monthTotal === 0) return '0.00';
+                                return ((value / monthTotal) * 100).toFixed(2);
+                            };
+                            
+                            return `
+                                <div style="margin-bottom: 25px; border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden;">
+                                    <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 12px 15px; font-weight: 600;">
+                                        ${pred.month || 'Unknown Month'} - Total per Acre: ${formatNumber(monthTotal)} UGX 
+                                        <span style="float: right; background: rgba(255,255,255,0.2); padding: 2px 10px; border-radius: 12px; font-size: 0.9em;">
+                                            ${changeSymbol}${change.toFixed(2)}%
+                                        </span>
+                                    </div>
+                                    <table class="results-table" style="margin: 0;">
+                                        <thead>
+                                            <tr>
+                                                <th>Input Type</th>
+                                                <th>Unit Price</th>
+                                                <th>Qty/Acre</th>
+                                                <th>Total Cost (UGX)</th>
+                                                <th>% of Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${(() => {
+                                                const mults = indPrices.multipliers || {};
+                                                const unitP = indPrices.unit_prices || {};
+                                                const inputs = [
+                                                    { key: 'seed', name: 'Seed', unit: 'UGX/kg', qtyKey: 'seed_kg_per_acre', priceKey: 'seed_price', unitKey: 'seed_price_per_kg' },
+                                                    { key: 'fertilizer', name: 'Fertilizer', unit: 'UGX/kg', qtyKey: 'fertilizer_kg_per_acre', priceKey: 'fertilizer_price', unitKey: 'fertilizer_price_per_kg' },
+                                                    { key: 'herbicide', name: 'Herbicide', unit: 'UGX/L', qtyKey: 'herbicide_litre_per_acre', priceKey: 'herbicide_price', unitKey: 'herbicide_price_per_litre' },
+                                                    { key: 'pesticide', name: 'Pesticide', unit: 'UGX/L', qtyKey: 'pesticide_litre_per_acre', priceKey: 'pesticide_price', unitKey: 'pesticide_price_per_litre' },
+                                                    { key: 'labor', name: 'Labor', unit: 'UGX/day', qtyKey: 'labor_days_per_acre', priceKey: 'labor_cost', unitKey: 'labor_cost_per_day' }
+                                                ];
+                                                
+                                                return inputs.map(input => {
+                                                    const unitPrice = unitP[input.unitKey] || 0;
+                                                    const qty = mults[input.qtyKey] || 0;
+                                                    const totalP = indPrices[input.priceKey] || 0;
+                                                    return `
+                                                        <tr>
+                                                            <td class="input-name">${input.name}</td>
+                                                            <td>${formatNumber(unitPrice)}<br><small style="color: #6c757d;">${input.unit}</small></td>
+                                                            <td>${qty.toFixed(1)}</td>
+                                                            <td class="price-value">${formatNumber(totalP)}</td>
+                                                            <td><span class="percentage positive">${calculatePercentage(totalP)}%</span></td>
+                                                        </tr>
+                                                    `;
+                                                }).join('');
+                                            })()}
+                                            <tr class="summary-row">
+                                                <td colspan="3">🎯 <strong>Total for ${pred.month || 'Month'}</strong></td>
+                                                <td class="price-value" style="color: #667eea; font-size: 1.1em;">${formatNumber(monthTotal)}</td>
+                                                <td><span class="percentage positive">100.00%</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    ` : ''}
+                    
+                    <div class="breakdown" style="background: linear-gradient(135deg, #e8f4f8 0%, #f0f8e8 100%); margin-top: 20px;">
+                        <h4>🤖 AI Model Information:</h4>
+                        <p><strong>Model:</strong> ${result.ai_model_used || 'Hybrid TemporalKG Model'}</p>
+                        <p><small>Prediction Generated: ${result.timestamp || 'Unknown'}</small></p>
+                    </div>
+                </div>
+            `;
+            
+            debugLog("Results displayed in HTML");
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            debugLog(`Error displayed: ${message}`);
+        }
+        
+        // Load multipliers table
+        async function loadMultipliers() {
+            try {
+                const response = await fetch('/multipliers');
+                if (!response.ok) throw new Error('Failed to load multipliers');
+                
+                const data = await response.json();
+                debugLog("Loaded multipliers:", data);
+                
+                const multipliers = data.multipliers || {};
+                const tbody = document.getElementById('multipliersBody');
+                
+                if (Object.keys(multipliers).length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #6c757d;">No multipliers available</td></tr>';
+                    return;
+                }
+                
+                // Sort crops alphabetically
+                const sortedCrops = Object.keys(multipliers).sort();
+                
+                tbody.innerHTML = sortedCrops.map(crop => {
+                    const mult = multipliers[crop];
+                    return `
+                        <tr>
+                            <td class="crop-name">${crop}</td>
+                            <td>${mult.seed_kg_per_acre || 'N/A'}</td>
+                            <td>${mult.fertilizer_kg_per_acre || 'N/A'}</td>
+                            <td>${mult.herbicide_litre_per_acre || 'N/A'}</td>
+                            <td>${mult.pesticide_litre_per_acre || 'N/A'}</td>
+                            <td>${mult.labor_days_per_acre || 'N/A'}</td>
+                        </tr>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading multipliers:', error);
+                const tbody = document.getElementById('multipliersBody');
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">Error loading multipliers</td></tr>';
+            }
+        }
+        
+        // Toggle multipliers display
+        function toggleMultipliers() {
+            const content = document.getElementById('multipliersContent');
+            content.classList.toggle('show');
+        }
+        
+        // Initialize the page
+        debugLog("Initializing page...");
+        loadOptions();
+        loadMultipliers();
+    </script>
+</body>
+</html>
