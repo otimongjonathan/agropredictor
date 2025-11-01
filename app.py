@@ -327,7 +327,8 @@ class ProperModelManager:
                                 individual_prices['labor_cost']]))
         
         # Future predictions also from model
-        future_predictions = self._predict_future_months(input_data, total_cost)
+        num_months = input_data.get('months_ahead', 3)
+        future_predictions = self._predict_future_months(input_data, total_cost, num_months)
         
         # Ensure all values are Python native types and include individual_prices with multipliers and unit_prices
         future_predictions = [
@@ -371,13 +372,16 @@ class ProperModelManager:
         
         return result
     
-    def _predict_future_months(self, input_data, current_cost):
+    def _predict_future_months(self, input_data, current_cost, num_months=3):
         """Use model to predict future months by extending the sequence"""
         future_predictions = []
         current_date = datetime.now()
         
+        # Limit to 12 months maximum
+        num_months = min(max(1, int(num_months)), 12)
+        
         # For each future month, create a new sequence and get model prediction
-        for i in range(1, 4):
+        for i in range(1, num_months + 1):
             try:
                 # Create extended sequence for future month
                 future_temporal, future_region, future_district, future_crop, future_weather = self.create_proper_input_sequence(
@@ -642,6 +646,15 @@ def predict():
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Missing field: {field}'}), 400
+        
+        # Validate months_ahead if provided
+        if 'months_ahead' in data:
+            try:
+                months_ahead = int(data['months_ahead'])
+                if months_ahead < 1 or months_ahead > 12:
+                    return jsonify({'error': 'months_ahead must be between 1 and 12'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'error': 'months_ahead must be a valid number'}), 400
         
         result = model_manager.predict(data)
         

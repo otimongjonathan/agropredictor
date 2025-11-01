@@ -483,6 +483,12 @@
                         </select>
                     </div>
                     
+                    <div class="form-group">
+                        <label for="months_ahead">Months Ahead to Predict:</label>
+                        <input type="number" id="months_ahead" min="1" max="12" value="3" required>
+                        <small style="color: #6c757d; font-size: 0.85em;">Enter number of future months (1-12)</small>
+                    </div>
+                    
                     <button type="submit" class="btn" id="predictBtn">
                         Predict Costs
                     </button>
@@ -684,7 +690,8 @@
                     district: document.getElementById('district').value,
                     crop: document.getElementById('crop').value,
                     rainfall: 75,  // Default value
-                    soil_fertility: 80  // Default value
+                    soil_fertility: 80,  // Default value
+                    months_ahead: parseInt(document.getElementById('months_ahead').value) || 3
                 };
                 
                 debugLog("Sending prediction request:", inputData);

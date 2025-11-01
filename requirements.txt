@@ -1,4 +1,6 @@
-torch>=1.9.0,<2.0.0
+# PyTorch CPU-only (lighter, faster deployment - ~150MB vs ~500MB)
+# Using CPU-only version for faster Railway/Render deployments
+torch==1.9.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 flask>=2.0.0
 numpy>=1.21.0,<2.0.0
 pandas>=1.3.0
